@@ -31,7 +31,7 @@ Priority Order:
     
 4. Usage
     
-5. Top Models
+5. Top User-Selected Models
     
 6. Referral Growth
     

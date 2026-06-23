@@ -96,6 +96,11 @@ total_revenue,
 api_calls,  
 active_api_users,
 
+orchestra_requests,  
+orchestra_request_share,  
+orchestra_users,  
+orchestra_user_adoption,
+
 tokens_in,  
 tokens_out,  
 total_tokens,
@@ -177,7 +182,7 @@ The following metrics should NOT be stored in founder_metrics.csv:
 
 - Executive Summary
     
-- Top Models
+- Top User-Selected Models
     
 - Traffic Sources
     

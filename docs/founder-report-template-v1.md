@@ -204,7 +204,7 @@ Example:
 
 ---
 
-# Top Models
+# Top User-Selected Models
 
 |Rank|Model|Requests|Share|
 |---|---|---|---|

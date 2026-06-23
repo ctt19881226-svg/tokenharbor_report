@@ -359,9 +359,9 @@ and created_at < :today_start;
 
 ---
 
-# 7. Top Models
+# 7. Top User-Selected Models
 
-## Top Models (Top 10)
+## Top User-Selected Models (Top 10)
 
 ```sql
 with model_stats as (

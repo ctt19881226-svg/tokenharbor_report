@@ -209,59 +209,127 @@ async function main() {
 
   // ── 6. Usage ──────────────────────────────────────────────
   const api_calls_yesterday = await scalar(
-    `select count(*) from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select count(*) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const active_api_users = await scalar(
-    `select count(distinct user_id) from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select count(distinct rt.user_id) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const tokens_in = await scalar(
-    `select coalesce(sum(tokens_in), 0) from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select coalesce(sum(rt.tokens_in), 0) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const tokens_out = await scalar(
-    `select coalesce(sum(tokens_out), 0) from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select coalesce(sum(rt.tokens_out), 0) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const total_tokens = await scalar(
-    `select coalesce(sum(tokens_in), 0) + coalesce(sum(tokens_out), 0)
-     from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select coalesce(sum(rt.tokens_in), 0) + coalesce(sum(rt.tokens_out), 0)
+     from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const cost_usd = await scalar(
-    `select round(coalesce(sum(cost_usd), 0), 4) from request_traces
-     where created_at >= $1 and created_at < $2`,
+    `select round(coalesce(sum(rt.cost_usd), 0), 4) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const error_rate = await scalar(
     `select round(
-       100.0 * count(*) filter (where ok=false)
+       100.0 * count(*) filter (where rt.ok=false)
        / nullif(count(*), 0), 2
-     ) from request_traces
-     where created_at >= $1 and created_at < $2`,
+     ) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const cache_hit_rate = await scalar(
     `select round(
-       100.0 * count(*) filter (where cache_hit=true)
+       100.0 * count(*) filter (where rt.cache_hit=true)
        / nullif(count(*), 0), 2
-     ) from request_traces
-     where created_at >= $1 and created_at < $2`,
+     ) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
+
+  // -- 6.5 TH Orchestra ------------------------------------------------
+  const orchestra_requests = await scalar(
+    `select count(*)::int from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'th-orchestra'
+     and coalesce(p.is_system, false) = false`,
+    [ys, ts]
+  );
+
+  const orchestra_users = await scalar(
+    `select count(distinct rt.user_id)::int from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'th-orchestra'
+     and coalesce(p.is_system, false) = false`,
+    [ys, ts]
+  );
+
+  const orchestra_request_share =
+    api_calls_yesterday > 0
+      ? Math.round((10000 * orchestra_requests) / api_calls_yesterday) / 100
+      : 0;
+
+  const orchestra_user_adoption =
+    active_api_users > 0
+      ? Math.round((10000 * orchestra_users) / active_api_users) / 100
+      : 0;
+
+  const orchestra_breakdown_rows = await rows(
+    `select rt.upstream_model, count(*)::int as requests
+     from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'th-orchestra'
+     and coalesce(p.is_system, false) = false
+     and rt.upstream_model is not null
+     group by rt.upstream_model
+     order by requests desc
+     limit 5`,
+    [ys, ts]
+  );
+
+  const th_orchestra_breakdown = orchestra_breakdown_rows.map((row) => ({
+    upstream_model: row.upstream_model,
+    requests: Number(row.requests) || 0,
+    share_pct:
+      orchestra_requests > 0
+        ? Math.round((10000 * (Number(row.requests) || 0)) / orchestra_requests) / 100
+        : 0,
+  }));
 
   // ── 7. Top Models ─────────────────────────────────────────
   // 拉取全量按 model 的请求计数,然后在 JS 端做"跨 provider 合并"
@@ -273,10 +341,13 @@ async function main() {
   //        例: "claude-sonnet-4.6" → "claude-sonnet-4-6"
   //     3) 合并 requests 总数,重新计算 share_pct
   const all_model_rows = await rows(
-    `select model, count(*)::int as requests
-     from request_traces
-     where created_at >= $1 and created_at < $2
-     group by model`,
+    `select rt.model, count(*)::int as requests
+     from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and coalesce(p.is_system, false) = false
+     and rt.model <> 'th-orchestra'
+     group by rt.model`,
     [ys, ts]
   );
 
@@ -446,6 +517,14 @@ async function main() {
     },
 
     top_models: top_models_normalized,
+
+    th_orchestra: {
+      requests: orchestra_requests,
+      request_share: orchestra_request_share,
+      users: orchestra_users,
+      user_adoption: orchestra_user_adoption,
+      top_routed_models: th_orchestra_breakdown,
+    },
 
     welcome_credit: {
       users_granted: wc_users_granted,

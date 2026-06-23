@@ -55,6 +55,17 @@ Example:
 "cache_hit_rate": 18.40  
 },
 
+"th_orchestra": {  
+"requests": 417,  
+"request_share": 7.6,  
+"users": 18,  
+"user_adoption": 18.0,  
+"top_routed_models": [  
+{ "upstream_model": "claude-opus-4-8", "requests": 120, "share_pct": 28.8 },  
+{ "upstream_model": "deepseek-v4-flash", "requests": 140, "share_pct": 33.6 }  
+]  
+},
+
 "welcome_credit": {  
 "users_granted": 120,  
 "total_granted": 600,  

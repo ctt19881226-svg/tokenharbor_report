@@ -471,7 +471,7 @@ Cache Hits / Total Requests
 
 ---
 
-## Top Models (Top 10)
+## Top User-Selected Models (Top 10)
 
 Definition:
 
@@ -802,7 +802,7 @@ Summary should cover:
     
 - Usage Trends
     
-- Top Models
+- Top User-Selected Models
     
 - Welcome Credit Efficiency
     
@@ -837,7 +837,7 @@ The Daily Founder Report should be displayed in the following order:
     
 10. Website Traffic
     
-11. Top Models
+11. Top User-Selected Models
     
 
 This order should remain consistent across Markdown reports, Notion reports, and future dashboards.

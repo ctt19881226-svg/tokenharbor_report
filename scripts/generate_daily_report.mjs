@@ -90,6 +90,8 @@ function renderMarkdown(m, reportDate, englishSummary) {
   const ref = m.referral || {};
   const w = m.website || {};
   const top = m.top_models || [];
+  const tho = m.th_orchestra || {};
+  const routed = tho.top_routed_models || [];
 
   const yesterdayStart = `${reportDate}T00:00:00Z`;
   const todayEnd = `${isoToday(reportDate)}T00:00:00Z`;
@@ -100,6 +102,17 @@ function renderMarkdown(m, reportDate, englishSummary) {
         .map(
           (row, i) =>
             `| ${i + 1} | ${row.model} | ${fmtNumber(row.requests)} | ${fmtPct(
+              row.share_pct
+            )}% |`
+        )
+        .join("\n")
+    : "| - | (no data) | 0 | 0% |";
+
+  const orchestraRows = routed.length
+    ? routed
+        .map(
+          (row, i) =>
+            `| ${i + 1} | ${row.upstream_model} | ${fmtNumber(row.requests)} | ${fmtPct(
               row.share_pct
             )}% |`
         )
@@ -231,6 +244,31 @@ ${summaryBlock}
 
 ---
 
+# Top User-Selected Models
+
+| Rank | Model | Requests | Share |
+|---|---|---|---|
+${topModelsRows}
+
+---
+
+# TH Orchestra
+
+| Metric | Value |
+|---|---|
+| Requests | ${fmtNumber(tho.requests)} |
+| Request Share | ${fmtPct(tho.request_share)}% |
+| Users | ${fmtNumber(tho.users)} |
+| User Adoption | ${fmtPct(tho.user_adoption)}% |
+
+## Top Routed Models
+
+| Rank | Upstream Model | Requests | Share |
+|---|---|---|---|
+${orchestraRows}
+
+---
+
 # Welcome Credit Economics
 
 | Metric | Value |
@@ -278,19 +316,13 @@ ${summaryBlock}
 
 ---
 
-# Top Models
-
-| Rank | Model | Requests | Share |
-|---|---|---|---|
-${topModelsRows}
-
----
-
 # Notes
 
 Website Traffic metrics come from GA4 (not yet connected; values reported as 0).
 
 Business Metrics come from Supabase.
+
+Usage, Top User-Selected Models, and TH Orchestra exclude internal system users where profiles.is_system = true. Top User-Selected Models exclude TH Orchestra because it is tracked as a separate product capability.
 
 Website Traffic and Business Metrics should not be interpreted as a single funnel because Token Harbor supports API-first onboarding flows.
 `;
@@ -303,6 +335,7 @@ function renderExecutiveSummary(m, reportDate) {
   const r = m.revenue || {};
   const u = m.usage || {};
   const top = m.top_models || [];
+  const tho = m.th_orchestra || {};
   const ref = m.referral || {};
   const w = m.website || {};
 
@@ -318,8 +351,9 @@ function renderExecutiveSummary(m, reportDate) {
       : `No new paying users yesterday; revenue MTD $${fmtMoney(r.revenue_mtd)}.`,
     `${fmtNumber(u.api_calls_yesterday)} API calls, ${fmtNumber(u.total_tokens)} tokens, cost $${fmtMoney(u.cost_usd)} (error rate ${fmtPct(u.error_rate)}%).`,
     top2.length
-      ? `${top2Names} accounted for ${fmtPct(top2Share)}% of all requests.`
-      : `No model usage recorded yesterday.`,
+      ? `${top2Names} accounted for ${fmtPct(top2Share)}% of direct model requests.`
+      : `No direct model usage recorded yesterday.`,
+    `TH Orchestra recorded ${fmtNumber(tho.requests)} requests from ${fmtNumber(tho.users)} user(s), with ${fmtPct(tho.user_adoption)}% user adoption.`,
     `Referrals contributed ${fmtNumber(ref.new_referral_users_yesterday)} of new users (overall referral share ${fmtPct(ref.referral_share)}%).`,
   ];
 
@@ -363,7 +397,7 @@ Requirements:
 - Maximum 120 words per language section
 - Focus on meaningful changes; avoid restating every metric
 - Highlight anomalies and trends
-- Priority order: Growth, Activation, Revenue, Usage, Top Models, Referral, Website Traffic
+- Priority order: Growth, Activation, Revenue, Usage, TH Orchestra, Top User-Selected Models, Referral, Website Traffic
 - Note: Website Traffic comes from GA4 (not yet connected, values are 0) — do NOT comment on website traffic as a real signal.
 
 Output format MUST be exactly (no extra commentary, no code fences):
@@ -456,6 +490,10 @@ const CSV_COLUMNS = [
   "total_revenue",
   "api_calls",
   "active_api_users",
+  "orchestra_requests",
+  "orchestra_request_share",
+  "orchestra_users",
+  "orchestra_user_adoption",
   "tokens_in",
   "tokens_out",
   "total_tokens",
@@ -489,6 +527,7 @@ function buildCsvRow(m, reportDate) {
   const wc = m.welcome_credit || {};
   const ref = m.referral || {};
   const w = m.website || {};
+  const tho = m.th_orchestra || {};
 
   const num = (x) => (x === null || x === undefined ? 0 : x);
   const newUsers = Number(g.new_users_yesterday) || 0;
@@ -523,6 +562,10 @@ function buildCsvRow(m, reportDate) {
     total_revenue: num(r.total_revenue),
     api_calls: num(u.api_calls_yesterday),
     active_api_users: num(u.active_api_users),
+    orchestra_requests: num(tho.requests),
+    orchestra_request_share: num(tho.request_share),
+    orchestra_users: num(tho.users),
+    orchestra_user_adoption: num(tho.user_adoption),
     tokens_in: num(u.tokens_in),
     tokens_out: num(u.tokens_out),
     total_tokens: num(u.total_tokens),
