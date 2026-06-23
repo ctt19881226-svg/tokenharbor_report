@@ -411,6 +411,7 @@ async function main() {
 
     verification: {
       verified_users,
+      new_verified_users_yesterday,
       verification_rate,
     },
 
