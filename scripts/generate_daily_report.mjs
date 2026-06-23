@@ -156,8 +156,6 @@ ${generatedAt}
 
 ${summaryBlock}
 
-(Full bilingual version: see \`executive_summary.txt\`.)
-
 ---
 
 # Yesterday Snapshot
