@@ -71,3 +71,4 @@ jobs:
             reports/founder_metrics.csv
           retention-days: 90
           if-no-files-found: warn
+          overwrite: true
