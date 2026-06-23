@@ -153,14 +153,14 @@ ${summaryBlock}
 |---|---|
 | New Users | ${fmtNumber(g.new_users_yesterday)} |
 | New Verified Users | ${fmtNumber(v.new_verified_users_yesterday)} |
-| Verification Rate | ${newVerifRate}% |
+| New Verification Rate (Day) | ${newVerifRate}% |
 | New Activated Users | ${fmtNumber(a.new_activated_users_yesterday)} |
-| Activation Rate | ${newActivRate}% |
+| New Activation Rate (Day) | ${newActivRate}% |
 | Active Users Yesterday | ${fmtNumber(ac.active_users_yesterday)} |
 | New Paying Users | ${fmtNumber(r.new_paying_users_yesterday)} |
 | Revenue Yesterday | $${fmtMoney(r.revenue_yesterday)} |
 | New Referral Users | ${fmtNumber(ref.new_referral_users_yesterday)} |
-| Referral Share | ${newRefShare}% |
+| Referral Share (Day) | ${newRefShare}% |
 
 ---
 
