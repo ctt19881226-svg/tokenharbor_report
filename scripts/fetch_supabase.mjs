@@ -132,6 +132,12 @@ async function main() {
     `select count(*) from profiles where email_verified_at is not null`
   );
 
+  const new_verified_users_yesterday = await scalar(
+    `select count(*) from profiles
+     where email_verified_at >= $1 and email_verified_at < $2`,
+    [ys, ts]
+  );
+
   const verification_rate = await scalar(
     `select round(
        100.0 * count(*) filter (where email_verified_at is not null)

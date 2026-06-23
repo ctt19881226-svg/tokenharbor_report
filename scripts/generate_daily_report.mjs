@@ -111,6 +111,16 @@ function renderMarkdown(m, reportDate, englishSummary) {
       ? englishSummary
       : "(See `executive_summary.txt` for the bilingual summary.)";
 
+  // Yesterday snapshot computed rates
+  const newUsers = Number(g.new_users_yesterday) || 0;
+  const newVerified = Number(v.new_verified_users_yesterday) || 0;
+  const newActivated = Number(a.new_activated_users_yesterday) || 0;
+  const newReferral = Number(ref.new_referral_users_yesterday) || 0;
+
+  const newVerifRate = newUsers > 0 ? ((newVerified / newUsers) * 100).toFixed(2) : "0.00";
+  const newActivRate = newUsers > 0 ? ((newActivated / newUsers) * 100).toFixed(2) : "0.00";
+  const newRefShare  = newUsers > 0 ? ((newReferral  / newUsers) * 100).toFixed(2) : "0.00";
+
   return `# Token Harbor Founder Daily Report
 
 Report Date: ${reportDate}
@@ -137,6 +147,23 @@ ${summaryBlock}
 
 ---
 
+# Yesterday Snapshot
+
+| Metric | Value |
+|---|---|
+| New Users | ${fmtNumber(g.new_users_yesterday)} |
+| New Verified Users | ${fmtNumber(v.new_verified_users_yesterday)} |
+| Verification Rate | ${newVerifRate}% |
+| New Activated Users | ${fmtNumber(a.new_activated_users_yesterday)} |
+| Activation Rate | ${newActivRate}% |
+| Active Users Yesterday | ${fmtNumber(ac.active_users_yesterday)} |
+| New Paying Users | ${fmtNumber(r.new_paying_users_yesterday)} |
+| Revenue Yesterday | $${fmtMoney(r.revenue_yesterday)} |
+| New Referral Users | ${fmtNumber(ref.new_referral_users_yesterday)} |
+| Referral Share | ${newRefShare}% |
+
+---
+
 # Growth
 
 | Metric | Value |
@@ -152,7 +179,8 @@ ${summaryBlock}
 
 | Metric | Value |
 |---|---|
-| Verified Users | ${fmtNumber(v.verified_users)} |
+| Verified Users Total | ${fmtNumber(v.verified_users)} |
+| New Verified Users Yesterday | ${fmtNumber(v.new_verified_users_yesterday)} |
 | Verification Rate | ${fmtPct(v.verification_rate)}% |
 
 ---
