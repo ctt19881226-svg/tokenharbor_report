@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+
+# Generated reports (keep the directory structure, not the data)
+reports/daily/
+reports/founder_metrics.csv
+
+# OS
+.DS_Store
+Thumbs.db
