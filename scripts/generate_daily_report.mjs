@@ -428,27 +428,56 @@ ${JSON.stringify(metrics, null, 2)}
   }
 }
 
-// ── 3. CSV (founder_metrics.csv schema) ──────────────────
+// -- 3. CSV (founder_metrics.csv schema)
 const CSV_COLUMNS = [
   "date",
-  "total_users", "new_users",
-  "valid_users", "valid_user_rate",
-  "verified_users", "verification_rate",
-  "activated_users", "new_activated_users", "activation_rate",
-  "active_users_yesterday", "active_users_7d",
-  "paying_users", "new_paying_users",
-  "revenue_yesterday", "revenue_mtd", "total_revenue",
-  "api_calls", "active_api_users",
-  "tokens_in", "tokens_out", "total_tokens",
+  "total_users",
+  "new_users",
+  "valid_users",
+  "valid_user_rate",
+  "verified_users",
+  "verification_rate",
+  "new_verified_users",
+  "new_verification_rate_day",
+  "activated_users",
+  "activation_rate",
+  "new_activated_users",
+  "new_activation_rate_day",
+  "active_users_yesterday",
+  "active_users_7d",
+  "referral_users",
+  "referral_share",
+  "new_referral_users",
+  "referral_share_day",
+  "paying_users",
+  "new_paying_users",
+  "revenue_yesterday",
+  "revenue_mtd",
+  "total_revenue",
+  "api_calls",
+  "active_api_users",
+  "tokens_in",
+  "tokens_out",
+  "total_tokens",
   "cost_usd",
-  "error_rate", "cache_hit_rate",
-  "users_granted", "total_granted",
-  "users_consumed_credit", "credit_consumption_amount",
+  "error_rate",
+  "cache_hit_rate",
+  "users_granted",
+  "total_granted",
+  "users_consumed_credit",
+  "credit_consumption_amount",
   "welcome_credit_to_paid",
-  "total_reclaimed", "net_granted", "utilization_rate",
-  "referral_users", "new_referral_users", "referral_share",
-  "visitors", "sessions", "website_registrations",
+  "total_reclaimed",
+  "net_granted",
+  "utilization_rate",
+  "visitors",
+  "sessions",
+  "website_registrations",
 ];
+
+function pct(part, total) {
+  return total > 0 ? Number(((part / total) * 100).toFixed(2)) : 0;
+}
 
 function buildCsvRow(m, reportDate) {
   const g = m.growth || {};
@@ -462,6 +491,10 @@ function buildCsvRow(m, reportDate) {
   const w = m.website || {};
 
   const num = (x) => (x === null || x === undefined ? 0 : x);
+  const newUsers = Number(g.new_users_yesterday) || 0;
+  const newVerified = Number(v.new_verified_users_yesterday) || 0;
+  const newActivated = Number(a.new_activated_users_yesterday) || 0;
+  const newReferral = Number(ref.new_referral_users_yesterday) || 0;
 
   return {
     date: reportDate,
@@ -471,11 +504,18 @@ function buildCsvRow(m, reportDate) {
     valid_user_rate: num(g.valid_user_rate),
     verified_users: num(v.verified_users),
     verification_rate: num(v.verification_rate),
+    new_verified_users: num(v.new_verified_users_yesterday),
+    new_verification_rate_day: pct(newVerified, newUsers),
     activated_users: num(a.activated_users_total),
-    new_activated_users: num(a.new_activated_users_yesterday),
     activation_rate: num(a.activation_rate),
+    new_activated_users: num(a.new_activated_users_yesterday),
+    new_activation_rate_day: pct(newActivated, newUsers),
     active_users_yesterday: num(ac.active_users_yesterday),
     active_users_7d: num(ac.active_users_7d),
+    referral_users: num(ref.referral_users_total),
+    referral_share: num(ref.referral_share),
+    new_referral_users: num(ref.new_referral_users_yesterday),
+    referral_share_day: pct(newReferral, newUsers),
     paying_users: num(r.paying_users_total),
     new_paying_users: num(r.new_paying_users_yesterday),
     revenue_yesterday: num(r.revenue_yesterday),
@@ -497,9 +537,6 @@ function buildCsvRow(m, reportDate) {
     total_reclaimed: num(wc.total_reclaimed),
     net_granted: num(wc.net_granted),
     utilization_rate: num(wc.utilization_rate),
-    referral_users: num(ref.referral_users_total),
-    new_referral_users: num(ref.new_referral_users_yesterday),
-    referral_share: num(ref.referral_share),
     visitors: num(w.visitors_yesterday),
     sessions: num(w.sessions_yesterday),
     website_registrations: num(w.website_registrations_yesterday),
@@ -507,16 +544,37 @@ function buildCsvRow(m, reportDate) {
 }
 
 function rowToCsvLine(row) {
-  return CSV_COLUMNS.map((c) => row[c]).join(",");
+  return CSV_COLUMNS.map((c) => row[c] ?? 0).join(",");
+}
+
+function rowFromCsvLine(headers, line) {
+  const values = line.split(",");
+  const row = {};
+  headers.forEach((header, i) => {
+    row[header] = values[i];
+  });
+
+  row.verification_rate ??= row.verification_rate_total;
+  row.activation_rate ??= row.activation_rate_total;
+  row.referral_share ??= row.referral_share_total;
+
+  const newUsers = Number(row.new_users) || 0;
+  const newVerified = Number(row.new_verified_users) || 0;
+  const newActivated = Number(row.new_activated_users) || 0;
+  const newReferral = Number(row.new_referral_users) || 0;
+  row.new_verification_rate_day = pct(newVerified, newUsers);
+  row.new_activation_rate_day = pct(newActivated, newUsers);
+  row.referral_share_day = pct(newReferral, newUsers);
+
+  return row;
 }
 
 function writeSingleDayCsv(filePath, row) {
   const header = CSV_COLUMNS.join(",");
   const line = rowToCsvLine(row);
-  fs.writeFileSync(filePath, `${header}\n${line}\n`, "utf8");
+  fs.writeFileSync(filePath, header + "\n" + line + "\n", "utf8");
 }
 
-// 追加/更新历史 CSV:同日期则替换,否则追加;最后按日期升序排序
 function upsertHistoricalCsv(filePath, row) {
   let lines = [];
   if (fs.existsSync(filePath)) {
@@ -529,30 +587,28 @@ function upsertHistoricalCsv(filePath, row) {
   const header = CSV_COLUMNS.join(",");
   let dataRows = [];
 
-  if (lines.length === 0) {
-    dataRows = [];
-  } else {
-    // 跳过 header
-    dataRows = lines.slice(1).filter((l) => l.trim().length > 0);
+  if (lines.length > 0) {
+    const existingHeader = lines[0].split(",");
+    dataRows = lines
+      .slice(1)
+      .filter((l) => l.trim().length > 0)
+      .map((line) => rowToCsvLine(rowFromCsvLine(existingHeader, line)));
   }
 
-  // 移除同日期的旧行
   dataRows = dataRows.filter((l) => {
     const firstCol = l.split(",")[0];
     return firstCol !== row.date;
   });
 
-  // 追加新行
   dataRows.push(rowToCsvLine(row));
 
-  // 按 date 升序
   dataRows.sort((a, b) => {
     const da = a.split(",")[0];
     const db = b.split(",")[0];
     return da < db ? -1 : da > db ? 1 : 0;
   });
 
-  fs.writeFileSync(filePath, `${header}\n${dataRows.join("\n")}\n`, "utf8");
+  fs.writeFileSync(filePath, header + "\n" + dataRows.join("\n") + "\n", "utf8");
 }
 
 // ── Main ────────────────────────────────────────────────
