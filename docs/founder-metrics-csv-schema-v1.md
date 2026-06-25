@@ -122,8 +122,15 @@ total_reclaimed,
 net_granted,  
 utilization_rate,
 
-visitors,  
-sessions,  
+free_deepseek_requests,
+free_deepseek_request_share,
+free_deepseek_users,
+free_deepseek_user_share,
+free_deepseek_tokens,
+free_deepseek_estimated_cost,
+
+visitors,
+sessions,
 website_registrations
 
 ---

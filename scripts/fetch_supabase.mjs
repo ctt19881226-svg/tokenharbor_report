@@ -331,6 +331,62 @@ async function main() {
         : 0,
   }));
 
+  // -- 6.6 Free DeepSeek V4 Flash ------------------------------------
+  const free_deepseek_requests = await scalar(
+    `select count(*) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'deepseek-v4-flash'
+     and rt.cost_usd = 0
+     and coalesce(p.is_system, false) = false`,
+    [ys, ts]
+  );
+
+  const free_deepseek_users = await scalar(
+    `select count(distinct rt.user_id) from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'deepseek-v4-flash'
+     and rt.cost_usd = 0
+     and coalesce(p.is_system, false) = false`,
+    [ys, ts]
+  );
+
+  const free_deepseek_tokens_row = await rows(
+    `select
+       coalesce(sum(input_tokens),0) as input_tokens,
+       coalesce(sum(output_tokens),0) as output_tokens,
+       coalesce(sum(input_tokens + output_tokens),0) as total_tokens
+     from request_traces rt
+     left join profiles p on p.id = rt.user_id
+     where rt.created_at >= $1 and rt.created_at < $2
+     and rt.model = 'deepseek-v4-flash'
+     and rt.cost_usd = 0
+     and coalesce(p.is_system, false) = false`,
+    [ys, ts]
+  );
+
+  const fd_input_tokens = Number(free_deepseek_tokens_row[0]?.input_tokens) || 0;
+  const fd_output_tokens = Number(free_deepseek_tokens_row[0]?.output_tokens) || 0;
+  const fd_total_tokens = Number(free_deepseek_tokens_row[0]?.total_tokens) || 0;
+
+  const free_deepseek_request_share =
+    api_calls_yesterday > 0
+      ? Math.round((10000 * free_deepseek_requests) / api_calls_yesterday) / 100
+      : 0;
+
+  const free_deepseek_user_share =
+    active_api_users > 0
+      ? Math.round((10000 * free_deepseek_users) / active_api_users) / 100
+      : 0;
+
+  // Estimated cost: input $0.14/1M, output $0.28/1M
+  const free_deepseek_estimated_cost =
+    Math.round(
+      ((fd_input_tokens / 1_000_000) * 0.14 +
+        (fd_output_tokens / 1_000_000) * 0.28) * 10000
+    ) / 10000;
+
   // ── 7. Top Models ─────────────────────────────────────────
   // 拉取全量按 model 的请求计数,然后在 JS 端做"跨 provider 合并"
   //   规则:
@@ -524,6 +580,17 @@ async function main() {
       users: orchestra_users,
       user_adoption: orchestra_user_adoption,
       top_routed_models: th_orchestra_breakdown,
+    },
+
+    free_deepseek: {
+      requests: free_deepseek_requests,
+      request_share: free_deepseek_request_share,
+      users: free_deepseek_users,
+      user_share: free_deepseek_user_share,
+      input_tokens: fd_input_tokens,
+      output_tokens: fd_output_tokens,
+      tokens: fd_total_tokens,
+      estimated_cost: free_deepseek_estimated_cost,
     },
 
     welcome_credit: {

@@ -388,6 +388,118 @@ limit 10;
 
 ---
 
+# 7.5 Free DeepSeek V4 Flash
+
+## Requests
+
+```sql
+select count(*) as requests
+from request_traces rt
+left join profiles p on p.id = rt.user_id
+where rt.created_at >= :yesterday_start
+and rt.created_at < :today_start
+and rt.model = 'deepseek-v4-flash'
+and rt.cost_usd = 0
+and coalesce(p.is_system,false) = false;
+```
+
+---
+
+## Users
+
+```sql
+select count(distinct rt.user_id) as users
+from request_traces rt
+left join profiles p on p.id = rt.user_id
+where rt.created_at >= :yesterday_start
+and rt.created_at < :today_start
+and rt.model = 'deepseek-v4-flash'
+and rt.cost_usd = 0
+and coalesce(p.is_system,false) = false;
+```
+
+---
+
+## Tokens
+
+```sql
+select
+    coalesce(sum(input_tokens),0) as input_tokens,
+    coalesce(sum(output_tokens),0) as output_tokens,
+    coalesce(sum(input_tokens + output_tokens),0) as total_tokens
+from request_traces rt
+left join profiles p on p.id = rt.user_id
+where rt.created_at >= :yesterday_start
+and rt.created_at < :today_start
+and rt.model = 'deepseek-v4-flash'
+and rt.cost_usd = 0
+and coalesce(p.is_system,false) = false;
+```
+
+---
+
+## Request Share
+
+```sql
+select
+    100.0 *
+    (
+        select count(*)
+        from request_traces rt
+        left join profiles p on p.id = rt.user_id
+        where rt.created_at >= :yesterday_start
+        and rt.created_at < :today_start
+        and rt.model = 'deepseek-v4-flash'
+        and rt.cost_usd = 0
+        and coalesce(p.is_system,false) = false
+    )
+    /
+    nullif(
+        (
+            select count(*)
+            from request_traces rt
+            left join profiles p on p.id = rt.user_id
+            where rt.created_at >= :yesterday_start
+            and rt.created_at < :today_start
+            and coalesce(p.is_system,false) = false
+        ),
+        0
+    ) as request_share_pct;
+```
+
+---
+
+## User Share
+
+```sql
+select
+    100.0 *
+    (
+        select count(distinct rt.user_id)
+        from request_traces rt
+        left join profiles p on p.id = rt.user_id
+        where rt.created_at >= :yesterday_start
+        and rt.created_at < :today_start
+        and rt.model = 'deepseek-v4-flash'
+        and rt.cost_usd = 0
+        and coalesce(p.is_system,false) = false
+    )
+    /
+    nullif(
+        (
+            select count(distinct rt.user_id)
+            from request_traces rt
+            left join profiles p on p.id = rt.user_id
+            where rt.created_at >= :yesterday_start
+            and rt.created_at < :today_start
+            and coalesce(p.is_system,false) = false
+        ),
+        0
+    ) as user_share_pct;
+```
+
+---
+
 # 8. Welcome Credit Economics
 
 ## Users Granted

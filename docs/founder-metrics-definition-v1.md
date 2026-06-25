@@ -484,17 +484,113 @@ request_traces.model
 Output:
 
 - Rank
-    
+
 - Model
-    
+
 - Request Count
-    
+
 - Share %
-    
+
 
 Limit:
 
 Top 10
+
+---
+
+## Free DeepSeek V4 Flash
+
+Purpose:
+
+Track adoption and operating cost of the Free DeepSeek V4 Flash program.
+
+Definition:
+
+model = 'deepseek-v4-flash' AND cost_usd = 0
+
+Requests matching this condition are considered Free DeepSeek V4 Flash usage.
+
+---
+
+### Requests
+
+Definition:
+
+Total Free DeepSeek V4 Flash requests yesterday.
+
+Source:
+
+request_traces
+
+Formula:
+
+model = 'deepseek-v4-flash' AND cost_usd = 0
+
+---
+
+### Request Share
+
+Definition:
+
+Percentage of total API requests that used Free DeepSeek V4 Flash.
+
+Formula:
+
+Free DeepSeek Requests / Total API Requests Yesterday
+
+---
+
+### Users
+
+Definition:
+
+Distinct users who used Free DeepSeek V4 Flash yesterday.
+
+Formula:
+
+COUNT(DISTINCT user_id)
+
+---
+
+### User Share
+
+Definition:
+
+Percentage of active users who used Free DeepSeek V4 Flash.
+
+Formula:
+
+Free DeepSeek Users / Active Users Yesterday
+
+---
+
+### Tokens
+
+Definition:
+
+Total tokens consumed by Free DeepSeek V4 Flash yesterday.
+
+Formula:
+
+Input Tokens + Output Tokens
+
+---
+
+### Estimated Cost
+
+Definition:
+
+Estimated upstream cost based on DeepSeek V4 Flash pricing.
+
+Pricing:
+
+Input: $0.14 / 1M tokens
+
+Output: $0.28 / 1M tokens
+
+Formula:
+
+(Input Tokens / 1,000,000 × 0.14) + (Output Tokens / 1,000,000 × 0.28)
 
 ---
 

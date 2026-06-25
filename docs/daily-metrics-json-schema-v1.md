@@ -66,7 +66,16 @@ Example:
 ]  
 },
 
-"welcome_credit": {  
+"free_deepseek": {
+"requests": 34,
+"request_share": 5.30,
+"users": 8,
+"user_share": 28.57,
+"tokens": 1250000,
+"estimated_cost": 0.21
+},
+
+"welcome_credit": {
 "users_granted": 120,  
 "total_granted": 600,  
 "users_consumed_credit": 43,  

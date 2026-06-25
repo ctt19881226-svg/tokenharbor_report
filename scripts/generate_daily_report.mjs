@@ -92,6 +92,7 @@ function renderMarkdown(m, reportDate, englishSummary) {
   const top = m.top_models || [];
   const tho = m.th_orchestra || {};
   const routed = tho.top_routed_models || [];
+  const dsf = m.free_deepseek || {};
 
   const yesterdayStart = `${reportDate}T00:00:00Z`;
   const todayEnd = `${isoToday(reportDate)}T00:00:00Z`;
@@ -264,6 +265,19 @@ ${topModelsRows}
 | Rank | Upstream Model | Requests | Share |
 |---|---|---|---|
 ${orchestraRows}
+
+---
+
+# Free DeepSeek V4 Flash
+
+| Metric | Value |
+|---|---|
+| Requests | ${fmtNumber(dsf.requests)} |
+| Request Share | ${fmtPct(dsf.request_share)}% |
+| Users | ${fmtNumber(dsf.users)} |
+| User Share | ${fmtPct(dsf.user_share)}% |
+| Tokens | ${fmtNumber(dsf.tokens)} |
+| Estimated Cost | $${fmtMoney(dsf.estimated_cost)} |
 
 ---
 
@@ -506,6 +520,12 @@ const CSV_COLUMNS = [
   "total_reclaimed",
   "net_granted",
   "utilization_rate",
+  "free_deepseek_requests",
+  "free_deepseek_request_share",
+  "free_deepseek_users",
+  "free_deepseek_user_share",
+  "free_deepseek_tokens",
+  "free_deepseek_estimated_cost",
   "visitors",
   "sessions",
   "website_registrations",

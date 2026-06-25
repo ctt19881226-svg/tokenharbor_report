@@ -220,6 +220,19 @@ Example:
 
 ---
 
+# Free DeepSeek V4 Flash
+
+|Metric|Value|
+|---|---|
+|Requests|{{free_deepseek_requests}}|
+|Request Share|{{free_deepseek_request_share}}%|
+|Users|{{free_deepseek_users}}|
+|User Share|{{free_deepseek_user_share}}%|
+|Tokens|{{free_deepseek_tokens}}|
+|Estimated Cost|${{free_deepseek_estimated_cost}}|
+
+---
+
 # Notes
 
 Website Traffic metrics come from GA4.
