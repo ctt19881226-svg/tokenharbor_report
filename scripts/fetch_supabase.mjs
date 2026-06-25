@@ -337,7 +337,7 @@ async function main() {
      left join profiles p on p.id = rt.user_id
      where rt.created_at >= $1 and rt.created_at < $2
      and rt.model = 'deepseek-v4-flash'
-     and rt.cost_usd = 0
+     and coalesce(rt.cost_usd, 0) = 0
      and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
@@ -347,27 +347,27 @@ async function main() {
      left join profiles p on p.id = rt.user_id
      where rt.created_at >= $1 and rt.created_at < $2
      and rt.model = 'deepseek-v4-flash'
-     and rt.cost_usd = 0
+     and coalesce(rt.cost_usd, 0) = 0
      and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
   const free_deepseek_tokens_row = await rows(
     `select
-       coalesce(sum(input_tokens),0) as input_tokens,
-       coalesce(sum(output_tokens),0) as output_tokens,
-       coalesce(sum(input_tokens + output_tokens),0) as total_tokens
+       coalesce(sum(tokens_in),0)  as tokens_in,
+       coalesce(sum(tokens_out),0) as tokens_out,
+       coalesce(sum(tokens_in + tokens_out),0) as total_tokens
      from request_traces rt
      left join profiles p on p.id = rt.user_id
      where rt.created_at >= $1 and rt.created_at < $2
      and rt.model = 'deepseek-v4-flash'
-     and rt.cost_usd = 0
+     and coalesce(rt.cost_usd, 0) = 0
      and coalesce(p.is_system, false) = false`,
     [ys, ts]
   );
 
-  const fd_input_tokens = Number(free_deepseek_tokens_row[0]?.input_tokens) || 0;
-  const fd_output_tokens = Number(free_deepseek_tokens_row[0]?.output_tokens) || 0;
+  const fd_input_tokens = Number(free_deepseek_tokens_row[0]?.tokens_in) || 0;
+  const fd_output_tokens = Number(free_deepseek_tokens_row[0]?.tokens_out) || 0;
   const fd_total_tokens = Number(free_deepseek_tokens_row[0]?.total_tokens) || 0;
 
   const free_deepseek_request_share =
