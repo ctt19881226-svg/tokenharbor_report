@@ -546,6 +546,7 @@ function buildCsvRow(m, reportDate) {
   const ref = m.referral || {};
   const w = m.website || {};
   const tho = m.th_orchestra || {};
+  const dsf = m.free_deepseek || {};
 
   const num = (x) => (x === null || x === undefined ? 0 : x);
   const newUsers = Number(g.new_users_yesterday) || 0;
@@ -598,6 +599,12 @@ function buildCsvRow(m, reportDate) {
     total_reclaimed: num(wc.total_reclaimed),
     net_granted: num(wc.net_granted),
     utilization_rate: num(wc.utilization_rate),
+    free_deepseek_requests: num(dsf.requests),
+    free_deepseek_request_share: num(dsf.request_share),
+    free_deepseek_users: num(dsf.users),
+    free_deepseek_user_share: num(dsf.user_share),
+    free_deepseek_tokens: num(dsf.tokens),
+    free_deepseek_estimated_cost: num(dsf.estimated_cost),
     visitors: num(w.visitors_yesterday),
     sessions: num(w.sessions_yesterday),
     website_registrations: num(w.website_registrations_yesterday),

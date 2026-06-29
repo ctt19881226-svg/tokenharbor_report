@@ -45,22 +45,30 @@ const pool = new Pool({
 // ─────────────────────────────────────────────────────────────
 // Time window (UTC natural day)
 // ─────────────────────────────────────────────────────────────
-function getTimeWindow() {
-  const now = new Date();
+function getTimeWindow(dateArg) {
+  let report_date;
 
-  // 今天 UTC 00:00:00
-  const todayUTC = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)
-  );
+  if (dateArg) {
+    // 传入指定日期, 格式 YYYY-MM-DD
+    report_date = dateArg;
+  } else {
+    // 默认: 昨天 UTC
+    const now = new Date();
+    const todayUTC = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)
+    );
+    const yesterdayUTC = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000);
+    report_date = yesterdayUTC.toISOString().slice(0, 10);
+  }
 
-  // 昨天 UTC 00:00:00
-  const yesterdayUTC = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000);
-
-  // report_date = 昨天的日期 YYYY-MM-DD
-  const report_date = yesterdayUTC.toISOString().slice(0, 10);
+  // yesterday_start = report_date 00:00:00 UTC
+  // today_start     = report_date + 1 day 00:00:00 UTC
+  const [y, m, d] = report_date.split("-").map(Number);
+  const yesterdayUTC = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  const todayUTC = new Date(yesterdayUTC.getTime() + 24 * 60 * 60 * 1000);
 
   return {
-    yesterday_start: yesterdayUTC.toISOString(), // ISO with Z
+    yesterday_start: yesterdayUTC.toISOString(),
     today_start: todayUTC.toISOString(),
     report_date,
   };
@@ -88,7 +96,7 @@ async function rows(sql, params = []) {
 // Main
 // ─────────────────────────────────────────────────────────────
 async function main() {
-  const { yesterday_start, today_start, report_date } = getTimeWindow();
+  const { yesterday_start, today_start, report_date } = getTimeWindow(process.argv[2]);
 
   console.log("=".repeat(60));
   console.log("Token Harbor Daily Metrics Fetcher (Supabase)");

@@ -2,8 +2,9 @@ name: Token Harbor Daily Founder Report
 
 on:
   schedule:
-    # 08:05 Asia/Shanghai = 00:05 UTC
-    - cron: "5 0 * * *"
+    # Target 08:00 Asia/Shanghai (00:00 UTC)
+    # GitHub Actions cron often delayed 3-4h, so schedule at 20:00 UTC (04:00 CST)
+    - cron: "0 20 * * *"
   workflow_dispatch:
     inputs:
       report_date:
