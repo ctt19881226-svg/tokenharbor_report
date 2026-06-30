@@ -1,4 +1,4 @@
-/**
+﻿/**
  * generate_daily_report.mjs
  *
  * 读取 /reports/daily/{report_date}/daily_metrics.json
@@ -94,10 +94,6 @@ function renderMarkdown(m, reportDate, englishSummary) {
   const routed = tho.top_routed_models || [];
   const dsf = m.free_deepseek || {};
 
-  const yesterdayStart = `${reportDate}T00:00:00Z`;
-  const todayEnd = `${isoToday(reportDate)}T00:00:00Z`;
-  const generatedAt = new Date().toISOString();
-
   const topModelsRows = top.length
     ? top
         .map(
@@ -120,150 +116,88 @@ function renderMarkdown(m, reportDate, englishSummary) {
         .join("\n")
     : "| - | (no data) | 0 | 0% |";
 
+  const totalUsers = Number(g.total_users) || 0;
+  const verifiedUsers = Number(v.verified_users) || 0;
+  const activatedUsers = Number(a.activated_users_total) || 0;
+  const creditUsers = Number(wc.users_granted) || 0;
+  const payingUsers = Number(r.paying_users_total) || 0;
+
+  const verificationRate = totalUsers > 0 ? (100 * verifiedUsers) / totalUsers : 0;
+  const activationRate = totalUsers > 0 ? (100 * activatedUsers) / totalUsers : 0;
+  const creditClaimRate = totalUsers > 0 ? (100 * creditUsers) / totalUsers : 0;
+  const payUserRate = totalUsers > 0 ? (100 * payingUsers) / totalUsers : 0;
+
+  const newCreditUsers = wc.new_users_granted_yesterday ?? 0;
+  const freeCreditsUsedYesterday = wc.credit_consumption_amount_yesterday ?? 0;
+
   const summaryBlock =
     englishSummary && englishSummary.trim().length > 0
       ? englishSummary
-      : "(See `executive_summary.txt` for the bilingual summary.)";
+      : "- No executive summary was generated.";
 
-  // Yesterday snapshot computed rates
-  const newUsers = Number(g.new_users_yesterday) || 0;
-  const newVerified = Number(v.new_verified_users_yesterday) || 0;
-  const newActivated = Number(a.new_activated_users_yesterday) || 0;
-  const newReferral = Number(ref.new_referral_users_yesterday) || 0;
-
-  const newVerifRate = newUsers > 0 ? ((newVerified / newUsers) * 100).toFixed(2) : "0.00";
-  const newActivRate = newUsers > 0 ? ((newActivated / newUsers) * 100).toFixed(2) : "0.00";
-  const newRefShare  = newUsers > 0 ? ((newReferral  / newUsers) * 100).toFixed(2) : "0.00";
-
-  return `# Token Harbor Founder Daily Report
-
-Report Date: ${reportDate}
-
-Reporting Window:
-
-${yesterdayStart}
-
-↓
-
-${todayEnd}
-
-Generated At:
-
-${generatedAt}
-
----
-
-# Executive Summary
+  return `# Executive Summary
 
 ${summaryBlock}
 
 ---
 
-# Yesterday Snapshot
+# Business KPIs
 
-| Metric | Value |
-|---|---|
-| New Users | ${fmtNumber(g.new_users_yesterday)} |
-| New Verified Users | ${fmtNumber(v.new_verified_users_yesterday)} |
-| New Verification Rate (Day) | ${newVerifRate}% |
-| New Activated Users | ${fmtNumber(a.new_activated_users_yesterday)} |
-| New Activation Rate (Day) | ${newActivRate}% |
-| Active Users Yesterday | ${fmtNumber(ac.active_users_yesterday)} |
-| New Paying Users | ${fmtNumber(r.new_paying_users_yesterday)} |
-| Revenue Yesterday | $${fmtMoney(r.revenue_yesterday)} |
-| New Referral Users | ${fmtNumber(ref.new_referral_users_yesterday)} |
-| Referral Share (Day) | ${newRefShare}% |
-
----
-
-# Growth
-
-| Metric | Value |
-|---|---|
-| Total Users | ${fmtNumber(g.total_users)} |
-| New Users Yesterday | ${fmtNumber(g.new_users_yesterday)} |
-| Valid Users | ${fmtNumber(g.valid_users)} |
-| Valid User Rate | ${fmtPct(g.valid_user_rate)}% |
-
----
-
-# Verification
-
-| Metric | Value |
-|---|---|
-| Verified Users Total | ${fmtNumber(v.verified_users)} |
-| New Verified Users Yesterday | ${fmtNumber(v.new_verified_users_yesterday)} |
-| Verification Rate | ${fmtPct(v.verification_rate)}% |
-
----
-
-# Activation
-
-| Metric | Value |
-|---|---|
-| Activated Users | ${fmtNumber(a.activated_users_total)} |
-| New Activated Users | ${fmtNumber(a.new_activated_users_yesterday)} |
-| Activation Rate | ${fmtPct(a.activation_rate)}% |
-
----
-
-# Activity
-
-| Metric | Value |
-|---|---|
-| Active Users Yesterday | ${fmtNumber(ac.active_users_yesterday)} |
-| Active Users 7d | ${fmtNumber(ac.active_users_7d)} |
-
----
-
-# Revenue
-
-| Metric | Value |
-|---|---|
-| Paying Users | ${fmtNumber(r.paying_users_total)} |
-| New Paying Users | ${fmtNumber(r.new_paying_users_yesterday)} |
-| Revenue Yesterday | $${fmtMoney(r.revenue_yesterday)} |
-| Revenue MTD | $${fmtMoney(r.revenue_mtd)} |
-| Total Revenue | $${fmtMoney(r.total_revenue)} |
+| Current State | Value | Yesterday | Value |
+| --- | ---: | --- | ---: |
+| Total Registered Users | ${fmtNumber(g.total_users)} | New Registered Users | ${fmtNumber(g.new_users_yesterday)} |
+| Total Verified Users | ${fmtNumber(v.verified_users)} | New Verified Users | ${fmtNumber(v.new_verified_users_yesterday)} |
+| Verification Rate | ${fmtPct(verificationRate)}% | | |
+| Total Activated Users | ${fmtNumber(a.activated_users_total)} | New Activated Users | ${fmtNumber(a.new_activated_users_yesterday)} |
+| Activation Rate | ${fmtPct(activationRate)}% | | |
+| Total Users Claimed $5 Credit | ${fmtNumber(wc.users_granted)} | New Users Claimed $5 Credit | ${fmtNumber(newCreditUsers)} |
+| Credit Claim Rate | ${fmtPct(creditClaimRate)}% | | |
+| Total Free Credits Used | $${fmtMoney(wc.credit_consumption_amount)} | Free Credits Used Yesterday | $${fmtMoney(freeCreditsUsedYesterday)} |
+| Total Paying Users | ${fmtNumber(r.paying_users_total)} | New Paying Users | ${fmtNumber(r.new_paying_users_yesterday)} |
+| Pay User Rate | ${fmtPct(payUserRate)}% | | |
+| Total Top-ups | $${fmtMoney(r.total_revenue)} | Top-ups Yesterday | $${fmtMoney(r.revenue_yesterday)} |
 
 ---
 
 # Usage
 
 | Metric | Value |
-|---|---|
-| API Calls Yesterday | ${fmtNumber(u.api_calls_yesterday)} |
-| Active API Users | ${fmtNumber(u.active_api_users)} |
+| --- | ---: |
+| Active Users Yesterday | ${fmtNumber(ac.active_users_yesterday)} |
+| Active Users (7d) | ${fmtNumber(ac.active_users_7d)} |
+| API Requests Yesterday | ${fmtNumber(u.api_calls_yesterday)} |
 | Tokens In | ${fmtNumber(u.tokens_in)} |
 | Tokens Out | ${fmtNumber(u.tokens_out)} |
 | Total Tokens | ${fmtNumber(u.total_tokens)} |
-| Cost USD | $${fmtMoney(u.cost_usd)} |
+| Estimated Cost | $${fmtMoney(u.cost_usd)} |
 | Error Rate | ${fmtPct(u.error_rate)}% |
 | Cache Hit Rate | ${fmtPct(u.cache_hit_rate)}% |
 
 ---
 
-# Top User-Selected Models
+# Models
+
+## Top User-Selected Models
 
 | Rank | Model | Requests | Share |
-|---|---|---|---|
+| --- | --- | ---: | ---: |
 ${topModelsRows}
 
 ---
 
-# TH Orchestra
+## TH Orchestra
 
 | Metric | Value |
-|---|---|
+| --- | ---: |
 | Requests | ${fmtNumber(tho.requests)} |
 | Request Share | ${fmtPct(tho.request_share)}% |
 | Users | ${fmtNumber(tho.users)} |
 | User Adoption | ${fmtPct(tho.user_adoption)}% |
 
-## Top Routed Models
+### Top Routed Models
 
 | Rank | Upstream Model | Requests | Share |
-|---|---|---|---|
+| --- | --- | ---: | ---: |
 ${orchestraRows}
 
 ---
@@ -271,7 +205,7 @@ ${orchestraRows}
 # Free DeepSeek V4 Flash
 
 | Metric | Value |
-|---|---|
+| --- | ---: |
 | Requests | ${fmtNumber(dsf.requests)} |
 | Request Share | ${fmtPct(dsf.request_share)}% |
 | Users | ${fmtNumber(dsf.users)} |
@@ -284,12 +218,12 @@ ${orchestraRows}
 # Welcome Credit Economics
 
 | Metric | Value |
-|---|---|
+| --- | ---: |
 | Users Granted | ${fmtNumber(wc.users_granted)} |
 | Total Granted | $${fmtMoney(wc.total_granted)} |
 | Users Consumed Credit | ${fmtNumber(wc.users_consumed_credit)} |
 | Credit Consumption Amount | $${fmtMoney(wc.credit_consumption_amount)} |
-| Welcome Credit → Paid | ${fmtNumber(wc.welcome_credit_to_paid)} |
+| Welcome Credit -> Paid | ${fmtNumber(wc.welcome_credit_to_paid)} |
 | Total Reclaimed | $${fmtMoney(wc.total_reclaimed)} |
 | Net Granted | $${fmtMoney(wc.net_granted)} |
 | Utilization Rate | ${fmtPct(wc.utilization_rate)}% |
@@ -299,17 +233,27 @@ ${orchestraRows}
 # Referral
 
 | Metric | Value |
-|---|---|
+| --- | ---: |
 | Referral Users Total | ${fmtNumber(ref.referral_users_total)} |
-| New Referral Users Yesterday | ${fmtNumber(ref.new_referral_users_yesterday)} |
 | Referral Share | ${fmtPct(ref.referral_share)}% |
+| New Referral Users Yesterday | ${fmtNumber(ref.new_referral_users_yesterday)} |
+
+---
+
+# User Quality
+
+| Metric | Value |
+| --- | ---: |
+| Total Users | ${fmtNumber(g.total_users)} |
+| Valid Users | ${fmtNumber(g.valid_users)} |
+| Valid User Rate | ${fmtPct(g.valid_user_rate)}% |
 
 ---
 
 # Website Traffic
 
 | Metric | Value |
-|---|---|
+| --- | ---: |
 | Visitors Yesterday | ${fmtNumber(w.visitors_yesterday)} |
 | Sessions Yesterday | ${fmtNumber(w.sessions_yesterday)} |
 | Website Registrations | ${fmtNumber(w.website_registrations_yesterday)} |
@@ -317,82 +261,76 @@ ${orchestraRows}
 ## Traffic Sources (Top 5)
 
 | Source | Share |
-|---|---|
+| --- | ---: |
 | (GA4 not yet connected) | - |
 
 ## Top Landing Pages
 
 | Landing Page | Share |
-|---|---|
+| --- | ---: |
 | (GA4 not yet connected) | - |
 
 ---
 
 # Notes
 
-Website Traffic metrics come from GA4 (not yet connected; values reported as 0).
-
-Business Metrics come from Supabase.
-
-Usage, Top User-Selected Models, and TH Orchestra exclude internal system users where profiles.is_system = true. Top User-Selected Models exclude TH Orchestra because it is tracked as a separate product capability.
-
-Website Traffic and Business Metrics should not be interpreted as a single funnel because Token Harbor supports API-first onboarding flows.
+- Business KPIs come from Supabase.
+- Usage metrics exclude internal accounts where profiles.is_system = true.
+- Top User-Selected Models exclude TH Orchestra and internal routing models.
+- TH Orchestra is tracked as a separate product capability.
+- Free DeepSeek V4 Flash usage is defined as model='deepseek-v4-flash' AND cost_usd=0.
+- User Quality metrics are internal operational metrics and may not align with historical credit-claim counts because fraud controls were introduced after launch.
+- Website Traffic metrics come from GA4 and are currently unavailable.
+- Token Harbor supports API-first onboarding, so Website Traffic and Business KPIs should not be interpreted as a single funnel.
 `;
 }
-
-// ── 2. Executive Summary (中英双语 / 规则模板) ────────────
 function renderExecutiveSummary(m, reportDate) {
   const g = m.growth || {};
+  const v = m.verification || {};
   const a = m.activation || {};
   const r = m.revenue || {};
   const u = m.usage || {};
   const top = m.top_models || [];
   const tho = m.th_orchestra || {};
-  const ref = m.referral || {};
-  const w = m.website || {};
+  const dsf = m.free_deepseek || {};
 
-  const top2 = top.slice(0, 2);
-  const top2Share = top2.reduce((s, x) => s + Number(x.share_pct || 0), 0);
-  const top2Names = top2.map((x) => x.model).join(" + ");
+  const topModel = top[0]
+    ? `${top[0].model} (${fmtNumber(top[0].requests)} requests, ${fmtPct(top[0].share_pct)}%)`
+    : "no user-selected model usage recorded";
 
   const en = [
-    `${fmtNumber(g.new_users_yesterday)} new users registered yesterday, bringing total users to ${fmtNumber(g.total_users)}.`,
-    `${fmtNumber(a.new_activated_users_yesterday)} users activated for the first time (activation rate ${fmtPct(a.activation_rate)}%).`,
-    Number(r.new_paying_users_yesterday) > 0
-      ? `Revenue increased by $${fmtMoney(r.revenue_yesterday)} from ${fmtNumber(r.new_paying_users_yesterday)} new paying user(s); revenue MTD $${fmtMoney(r.revenue_mtd)}.`
-      : `No new paying users yesterday; revenue MTD $${fmtMoney(r.revenue_mtd)}.`,
-    `${fmtNumber(u.api_calls_yesterday)} API calls, ${fmtNumber(u.total_tokens)} tokens, cost $${fmtMoney(u.cost_usd)} (error rate ${fmtPct(u.error_rate)}%).`,
-    top2.length
-      ? `${top2Names} accounted for ${fmtPct(top2Share)}% of direct model requests.`
-      : `No direct model usage recorded yesterday.`,
-    `TH Orchestra recorded ${fmtNumber(tho.requests)} requests from ${fmtNumber(tho.users)} user(s), with ${fmtPct(tho.user_adoption)}% user adoption.`,
-    `Referrals contributed ${fmtNumber(ref.new_referral_users_yesterday)} of new users (overall referral share ${fmtPct(ref.referral_share)}%).`,
+    `${fmtNumber(g.new_users_yesterday)} new registered users; total registered users reached ${fmtNumber(g.total_users)}.`,
+    `${fmtNumber(v.new_verified_users_yesterday)} new verified users; total verified users reached ${fmtNumber(v.verified_users)}.`,
+    `${fmtNumber(a.new_activated_users_yesterday)} new activated users; total activated users reached ${fmtNumber(a.activated_users_total)}.`,
+    `${fmtNumber(r.new_paying_users_yesterday)} new paying users; top-ups yesterday were $${fmtMoney(r.revenue_yesterday)} and total top-ups were $${fmtMoney(r.total_revenue)}.`,
+    `${fmtNumber(u.api_calls_yesterday)} API requests, ${fmtNumber(u.total_tokens)} total tokens, and estimated cost of $${fmtMoney(u.cost_usd)}.`,
+    `Top user-selected model: ${topModel}.`,
+    `TH Orchestra recorded ${fmtNumber(tho.requests)} requests from ${fmtNumber(tho.users)} user(s).`,
+    `Free DeepSeek V4 Flash recorded ${fmtNumber(dsf.requests)} requests, ${fmtNumber(dsf.tokens)} tokens, and estimated cost of $${fmtMoney(dsf.estimated_cost)}.`,
   ];
 
   const cn = [
-    `昨日新增用户 ${fmtNumber(g.new_users_yesterday)},总用户数达到 ${fmtNumber(g.total_users)}。`,
-    `${fmtNumber(a.new_activated_users_yesterday)} 名用户首次激活(激活率 ${fmtPct(a.activation_rate)}%)。`,
-    Number(r.new_paying_users_yesterday) > 0
-      ? `新增 ${fmtNumber(r.new_paying_users_yesterday)} 名付费用户,昨日收入 $${fmtMoney(r.revenue_yesterday)},月度累计 $${fmtMoney(r.revenue_mtd)}。`
-      : `昨日无新增付费用户,月度累计收入 $${fmtMoney(r.revenue_mtd)}。`,
-    `API 调用 ${fmtNumber(u.api_calls_yesterday)} 次,消耗 ${fmtNumber(u.total_tokens)} tokens,成本 $${fmtMoney(u.cost_usd)}(错误率 ${fmtPct(u.error_rate)}%)。`,
-    top2.length
-      ? `${top2Names} 合计占据 ${fmtPct(top2Share)}% 的请求量。`
-      : `昨日无模型调用记录。`,
-    `推荐渠道带来 ${fmtNumber(ref.new_referral_users_yesterday)} 名新用户(整体推荐占比 ${fmtPct(ref.referral_share)}%)。`,
+    `昨日新增注册用户 ${fmtNumber(g.new_users_yesterday)}，总注册用户 ${fmtNumber(g.total_users)}。`,
+    `昨日新增验证用户 ${fmtNumber(v.new_verified_users_yesterday)}，总验证用户 ${fmtNumber(v.verified_users)}。`,
+    `昨日新增激活用户 ${fmtNumber(a.new_activated_users_yesterday)}，总激活用户 ${fmtNumber(a.activated_users_total)}。`,
+    `昨日新增付费用户 ${fmtNumber(r.new_paying_users_yesterday)}，昨日充值 $${fmtMoney(r.revenue_yesterday)}，累计充值 $${fmtMoney(r.total_revenue)}。`,
+    `昨日 API 请求 ${fmtNumber(u.api_calls_yesterday)} 次，总 tokens ${fmtNumber(u.total_tokens)}，预估成本 $${fmtMoney(u.cost_usd)}。`,
+    `Top User-Selected Model: ${topModel}。`,
+    `TH Orchestra 请求 ${fmtNumber(tho.requests)} 次，使用用户 ${fmtNumber(tho.users)}。`,
+    `Free DeepSeek V4 Flash 请求 ${fmtNumber(dsf.requests)} 次，tokens ${fmtNumber(dsf.tokens)}，预估成本 $${fmtMoney(dsf.estimated_cost)}。`,
   ];
 
-  return `Token Harbor Executive Summary — ${reportDate}
+  return `Token Harbor Executive Summary - ${reportDate}
 
 [English]
-${en.map((s) => `• ${s}`).join("\n")}
+${en.map((s) => `- ${s}`).join("\n")}
 
 [中文]
-${cn.map((s) => `• ${s}`).join("\n")}
+${cn.map((s) => `- ${s}`).join("\n")}
 `;
 }
 
-// ── 2.5 Claude API call (with fallback) ──────────────────
+// -- 2.5 Claude API call (with fallback)
 const ANTHROPIC_BASE_URL =
   process.env.ANTHROPIC_BASE_URL || "https://tokenharbor.ai";
 const ANTHROPIC_AUTH_TOKEN =
@@ -407,9 +345,9 @@ async function callClaudeForSummary(metrics, reportDate, fallbackSummary) {
 Requirements:
 - 3 to 5 bullets per language section
 - Maximum 120 words per language section
-- Focus on meaningful changes; avoid restating every metric
-- Highlight anomalies and trends
-- Priority order: Growth, Activation, Revenue, Usage, TH Orchestra, Top User-Selected Models, Referral, Website Traffic
+- Be factual and data-driven; do not speculate about causes
+- Summarize only factual changes from the metrics
+- Priority order: Business KPIs, Usage, Models, TH Orchestra, Free DeepSeek V4 Flash, Welcome Credit Economics, Referral, User Quality, Website Traffic
 - Note: Website Traffic comes from GA4 (not yet connected, values are 0) — do NOT comment on website traffic as a real signal.
 
 Output format MUST be exactly (no extra commentary, no code fences):
@@ -513,9 +451,11 @@ const CSV_COLUMNS = [
   "error_rate",
   "cache_hit_rate",
   "users_granted",
+  "new_users_granted_yesterday",
   "total_granted",
   "users_consumed_credit",
   "credit_consumption_amount",
+  "credit_consumption_amount_yesterday",
   "welcome_credit_to_paid",
   "total_reclaimed",
   "net_granted",
@@ -592,9 +532,11 @@ function buildCsvRow(m, reportDate) {
     error_rate: num(u.error_rate),
     cache_hit_rate: num(u.cache_hit_rate),
     users_granted: num(wc.users_granted),
+    new_users_granted_yesterday: num(wc.new_users_granted_yesterday),
     total_granted: num(wc.total_granted),
     users_consumed_credit: num(wc.users_consumed_credit),
     credit_consumption_amount: num(wc.credit_consumption_amount),
+    credit_consumption_amount_yesterday: num(wc.credit_consumption_amount_yesterday),
     welcome_credit_to_paid: num(wc.welcome_credit_to_paid),
     total_reclaimed: num(wc.total_reclaimed),
     net_granted: num(wc.net_granted),

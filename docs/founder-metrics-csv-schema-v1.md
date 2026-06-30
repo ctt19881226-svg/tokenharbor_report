@@ -111,10 +111,12 @@ error_rate,
 cache_hit_rate,
 
 users_granted,  
+new_users_granted_yesterday,  
 total_granted,
 
 users_consumed_credit,  
-credit_consumption_amount,
+credit_consumption_amount,  
+credit_consumption_amount_yesterday,
 
 welcome_credit_to_paid,
 

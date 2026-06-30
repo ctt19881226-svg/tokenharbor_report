@@ -78,8 +78,10 @@ Example:
 "welcome_credit": {
 "users_granted": 120,  
 "total_granted": 600,  
+"new_users_granted_yesterday": 6,  
 "users_consumed_credit": 43,  
 "credit_consumption_amount": 112,  
+"credit_consumption_amount_yesterday": 8.5,  
 "welcome_credit_to_paid": 5,  
 "total_reclaimed": 0,  
 "net_granted": 600,  

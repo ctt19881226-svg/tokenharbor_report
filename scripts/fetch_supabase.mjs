@@ -1,4 +1,4 @@
-/**
+﻿/**
  * fetch_supabase.mjs
  *
  * Token Harbor — Daily Founder Metrics Fetcher (Supabase)
@@ -454,6 +454,13 @@ async function main() {
     `select coalesce(sum(amount_usd), 0) from credit_grants where kind='welcome'`
   );
 
+  const wc_new_users_granted_yesterday = await scalar(
+    `select count(distinct user_id) from credit_grants
+     where kind='welcome'
+     and created_at >= $1 and created_at < $2`,
+    [ys, ts]
+  );
+
   const wc_users_consumed = await scalar(
     `select count(distinct cg.user_id)
      from credit_grants cg
@@ -472,6 +479,18 @@ async function main() {
        select 1 from credit_grants cg
        where cg.user_id=t.user_id and cg.kind='welcome'
      )`
+  );
+
+  const wc_consumption_amount_yesterday = await scalar(
+    `select abs(coalesce(sum(t.amount), 0))
+     from transactions t
+     where t.type='consume'
+     and t.created_at >= $1 and t.created_at < $2
+     and exists (
+       select 1 from credit_grants cg
+       where cg.user_id=t.user_id and cg.kind='welcome'
+     )`,
+    [ys, ts]
   );
 
   const wc_to_paid = await scalar(
@@ -604,8 +623,10 @@ async function main() {
     welcome_credit: {
       users_granted: wc_users_granted,
       total_granted: wc_total_granted,
+      new_users_granted_yesterday: wc_new_users_granted_yesterday,
       users_consumed_credit: wc_users_consumed,
       credit_consumption_amount: wc_consumption_amount,
+      credit_consumption_amount_yesterday: wc_consumption_amount_yesterday,
       welcome_credit_to_paid: wc_to_paid,
       total_reclaimed: wc_total_reclaimed,
       net_granted: wc_net_granted,

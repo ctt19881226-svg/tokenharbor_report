@@ -1,272 +1,149 @@
-# Founder Report Template v1
-
-Project: Token Harbor
-
-Version: 1.0
-
-Last Updated: 2026-06-22
-
-Purpose:
-
-Define the exact output format for the Daily Founder Report.
-
-CloudCode should generate a Markdown report following this structure.
-
----
-
-# Token Harbor Founder Daily Report
-
-Report Date: {{report_date}}
-
-Reporting Window:
-
-{{yesterday_start}}
-
-↓
-
-{{today_end}}
-
-Generated At:
-
-{{generated_at}}
-
----
+﻿# Founder Report Template v1.3
 
 # Executive Summary
 
-Generate 3–5 concise bullet points highlighting the most important developments.
-
-Focus on:
-
-- User growth
-    
-- Activation
-    
-- Revenue
-    
-- Usage
-    
-- Model trends
-    
-- Referral growth
-    
-- Website traffic
-    
-
-Example:
-
-- 6 new users registered yesterday, bringing total users to 127.
-    
-- 4 users activated for the first time, maintaining a 33.1% activation rate.
-    
-- Revenue increased by $20 from one new paying user.
-    
-- GPT-5.5 and Claude Sonnet 4.6 accounted for 73% of requests.
-    
-- Product Hunt generated 21% of website traffic.
-    
+{{executive_summary_bullets}}
 
 ---
 
-# Growth
+# Business KPIs
 
-|Metric|Value|
-|---|---|
-|Total Users|{{total_users}}|
-|New Users Yesterday|{{new_users_yesterday}}|
-|Valid Users|{{valid_users}}|
-|Valid User Rate|{{valid_user_rate}}%|
-
----
-
-# Verification
-
-|Metric|Value|
-|---|---|
-|Verified Users|{{verified_users}}|
-|Verification Rate|{{verification_rate}}%|
-
----
-
-# Activation
-
-|Metric|Value|
-|---|---|
-|Activated Users|{{activated_users_total}}|
-|New Activated Users|{{new_activated_users_yesterday}}|
-|Activation Rate|{{activation_rate}}%|
-
----
-
-# Activity
-
-|Metric|Value|
-|---|---|
-|Active Users Yesterday|{{active_users_yesterday}}|
-|Active Users 7d|{{active_users_7d}}|
-
----
-
-# Revenue
-
-|Metric|Value|
-|---|---|
-|Paying Users|{{paying_users_total}}|
-|New Paying Users|{{new_paying_users_yesterday}}|
-|Revenue Yesterday|${{revenue_yesterday}}|
-|Revenue MTD|${{revenue_mtd}}|
-|Total Revenue|${{total_revenue}}|
+| Current State | Value | Yesterday | Value |
+| --- | ---: | --- | ---: |
+| Total Registered Users | {{total_registered_users}} | New Registered Users | {{new_registered_users}} |
+| Total Verified Users | {{total_verified_users}} | New Verified Users | {{new_verified_users}} |
+| Verification Rate | {{verification_rate}}% | | |
+| Total Activated Users | {{total_activated_users}} | New Activated Users | {{new_activated_users}} |
+| Activation Rate | {{activation_rate}}% | | |
+| Total Users Claimed $5 Credit | {{total_users_claimed_5_credit}} | New Users Claimed $5 Credit | {{new_users_claimed_5_credit}} |
+| Credit Claim Rate | {{credit_claim_rate}}% | | |
+| Total Free Credits Used | ${{total_free_credits_used}} | Free Credits Used Yesterday | ${{free_credits_used_yesterday}} |
+| Total Paying Users | {{total_paying_users}} | New Paying Users | {{new_paying_users}} |
+| Pay User Rate | {{pay_user_rate}}% | | |
+| Total Top-ups | ${{total_topups}} | Top-ups Yesterday | ${{topups_yesterday}} |
 
 ---
 
 # Usage
 
-|Metric|Value|
-|---|---|
-|API Calls Yesterday|{{api_calls_yesterday}}|
-|Active API Users|{{active_api_users}}|
-|Tokens In|{{tokens_in}}|
-|Tokens Out|{{tokens_out}}|
-|Total Tokens|{{total_tokens}}|
-|Cost USD|${{cost_usd}}|
-|Error Rate|{{error_rate}}%|
-|Cache Hit Rate|{{cache_hit_rate}}%|
+| Metric | Value |
+| --- | ---: |
+| Active Users Yesterday | {{active_users_yesterday}} |
+| Active Users (7d) | {{active_users_7d}} |
+| API Requests Yesterday | {{api_requests_yesterday}} |
+| Tokens In | {{tokens_in}} |
+| Tokens Out | {{tokens_out}} |
+| Total Tokens | {{total_tokens}} |
+| Estimated Cost | ${{estimated_cost}} |
+| Error Rate | {{error_rate}}% |
+| Cache Hit Rate | {{cache_hit_rate}}% |
 
 ---
 
-# Welcome Credit Economics
+# Models
 
-|Metric|Value|
-|---|---|
-|Users Granted|{{users_granted}}|
-|Total Granted|${{total_granted}}|
-|Users Consumed Credit|{{users_consumed_credit}}|
-|Credit Consumption Amount|${{credit_consumption_amount}}|
-|Welcome Credit → Paid|{{welcome_credit_to_paid}}|
-|Total Reclaimed|${{total_reclaimed}}|
-|Net Granted|${{net_granted}}|
-|Utilization Rate|{{utilization_rate}}%|
+## Top User-Selected Models
+
+| Rank | Model | Requests | Share |
+| --- | --- | ---: | ---: |
+{{top_user_selected_models_rows}}
 
 ---
 
-# Referral
+## TH Orchestra
 
-|Metric|Value|
-|---|---|
-|Referral Users Total|{{referral_users_total}}|
-|New Referral Users Yesterday|{{new_referral_users_yesterday}}|
-|Referral Share|{{referral_share}}%|
+| Metric | Value |
+| --- | ---: |
+| Requests | {{th_orchestra_requests}} |
+| Request Share | {{th_orchestra_request_share}}% |
+| Users | {{th_orchestra_users}} |
+| User Adoption | {{th_orchestra_user_adoption}}% |
 
----
+### Top Routed Models
 
-# Website Traffic
-
-|Metric|Value|
-|---|---|
-|Visitors Yesterday|{{visitors_yesterday}}|
-|Sessions Yesterday|{{sessions_yesterday}}|
-|Website Registrations|{{website_registrations_yesterday}}|
-
----
-
-## Traffic Sources (Top 5)
-
-|Source|Share|
-|---|---|
-|{{traffic_sources_table}}||
-
-Example:
-
-|Source|Share|
-|---|---|
-|Google|38%|
-|Direct|25%|
-|Product Hunt|21%|
-|Twitter/X|10%|
-|Reddit|6%|
-
----
-
-## Top Landing Pages
-
-|Landing Page|Share|
-|---|---|
-|{{landing_pages_table}}||
-
-Example:
-
-|Landing Page|Share|
-|---|---|
-|/|42%|
-|/models|31%|
-|/pricing|16%|
-|/docs|11%|
-
----
-
-# Top User-Selected Models
-
-|Rank|Model|Requests|Share|
-|---|---|---|---|
-|{{top_models_table}}||||
-
-Example:
-
-|Rank|Model|Requests|Share|
-|---|---|---|---|
-|1|GPT-5.5|213|34.2%|
-|2|Claude Sonnet 4.6|189|30.3%|
-|3|Gemini 3.5 Flash|92|14.8%|
+| Rank | Upstream Model | Requests | Share |
+| --- | --- | ---: | ---: |
+{{th_orchestra_top_routed_models_rows}}
 
 ---
 
 # Free DeepSeek V4 Flash
 
-|Metric|Value|
-|---|---|
-|Requests|{{free_deepseek_requests}}|
-|Request Share|{{free_deepseek_request_share}}%|
-|Users|{{free_deepseek_users}}|
-|User Share|{{free_deepseek_user_share}}%|
-|Tokens|{{free_deepseek_tokens}}|
-|Estimated Cost|${{free_deepseek_estimated_cost}}|
+| Metric | Value |
+| --- | ---: |
+| Requests | {{free_deepseek_requests}} |
+| Request Share | {{free_deepseek_request_share}}% |
+| Users | {{free_deepseek_users}} |
+| User Share | {{free_deepseek_user_share}}% |
+| Tokens | {{free_deepseek_tokens}} |
+| Estimated Cost | ${{free_deepseek_estimated_cost}} |
+
+---
+
+# Welcome Credit Economics
+
+| Metric | Value |
+| --- | ---: |
+| Users Granted | {{users_granted}} |
+| Total Granted | ${{total_granted}} |
+| Users Consumed Credit | {{users_consumed_credit}} |
+| Credit Consumption Amount | ${{credit_consumption_amount}} |
+| Welcome Credit -> Paid | {{welcome_credit_to_paid}} |
+| Total Reclaimed | ${{total_reclaimed}} |
+| Net Granted | ${{net_granted}} |
+| Utilization Rate | {{utilization_rate}}% |
+
+---
+
+# Referral
+
+| Metric | Value |
+| --- | ---: |
+| Referral Users Total | {{referral_users_total}} |
+| Referral Share | {{referral_share}}% |
+| New Referral Users Yesterday | {{new_referral_users_yesterday}} |
+
+---
+
+# User Quality
+
+| Metric | Value |
+| --- | ---: |
+| Total Users | {{total_users}} |
+| Valid Users | {{valid_users}} |
+| Valid User Rate | {{valid_user_rate}}% |
+
+---
+
+# Website Traffic
+
+| Metric | Value |
+| --- | ---: |
+| Visitors Yesterday | {{visitors_yesterday}} |
+| Sessions Yesterday | {{sessions_yesterday}} |
+| Website Registrations | {{website_registrations}} |
+
+## Traffic Sources (Top 5)
+
+| Source | Share |
+| --- | ---: |
+| (GA4 not yet connected) | - |
+
+## Top Landing Pages
+
+| Landing Page | Share |
+| --- | ---: |
+| (GA4 not yet connected) | - |
 
 ---
 
 # Notes
 
-Website Traffic metrics come from GA4.
-
-Business Metrics come from Supabase.
-
-Website Traffic and Business Metrics should not be interpreted as a single funnel because Token Harbor supports API-first onboarding flows.
-
----
-
-# Output Requirements
-
-CloudCode must generate:
-
-1. daily_report.md
-    
-
-Human-readable founder report.
-
-2. daily_metrics.json
-    
-
-Machine-readable metrics.
-
-3. daily_metrics.csv
-    
-
-Historical trend tracking.
-
-4. executive_summary.txt
-    
-
-Executive summary only.
-
-All files should be saved under:
-
-/reports/daily/{{report_date}}/
+- Business KPIs come from Supabase.
+- Usage metrics exclude internal accounts where profiles.is_system = true.
+- Top User-Selected Models exclude TH Orchestra and internal routing models.
+- TH Orchestra is tracked as a separate product capability.
+- Free DeepSeek V4 Flash usage is defined as model='deepseek-v4-flash' AND cost_usd=0.
+- User Quality metrics are internal operational metrics and may not align with historical credit-claim counts because fraud controls were introduced after launch.
+- Website Traffic metrics come from GA4 and are currently unavailable.
+- Token Harbor supports API-first onboarding, so Website Traffic and Business KPIs should not be interpreted as a single funnel.
