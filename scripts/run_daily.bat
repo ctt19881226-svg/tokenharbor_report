@@ -18,8 +18,7 @@ set "LOG_DIR=%PROJECT_ROOT%\logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
 REM Build a YYYY-MM-DD stamp from current local date (Beijing).
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value ^| find "="') do set "LDT=%%I"
-set "LOG_DATE=%LDT:~0,4%-%LDT:~4,2%-%LDT:~6,2%"
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd'"') do set "LOG_DATE=%%I"
 set "LOG_FILE=%LOG_DIR%\daily_%LOG_DATE%.log"
 
 cd /d "%PROJECT_ROOT%"
